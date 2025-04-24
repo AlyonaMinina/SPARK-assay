@@ -122,44 +122,35 @@ print(" ");
 			selectWindow(title);
 			run("Duplicate...", "duplicate channels=1");
 			rename("SPARK_speckles");
-			run("Enhance Contrast...", "saturated=0.35 normalize");
-			setAutoThreshold("Shanbhag no-reset");
-			setOption("BlackBackground", true);
-			run("Convert to Mask");
-			run("Convert to Mask");
-			run("Remove Outliers...", "radius=3 threshold=44 which=Bright");
-			run("Options...", "iterations=1 count=1 black do=Dilate");
-			run("Set Measurements...", "area integrated redirect=None decimal=3");
-			run("Analyze Particles...", "  show=[Overlay Masks] display clear summarize");
-			if (isOpen("Results")){
-			selectWindow("Results");
-			run("Close");
-		}
-			selectWindow("Summary");
-			//rename("Results");
+			run("Find Maxima...", "prominence=16000 strict output=Count");
 			number_of_speckles = getResult("Count", 0);
-			area_of_speckles = getResult("Total Area", 0);
-			IntDen_of_speckles = getResult("IntDen", 0);
 			Table.set("Number of SPARK speckles", current_last_row, number_of_speckles, "Image Results");
-			Table.set("Total area of SPARK speckles in um", current_last_row, area_of_speckles, "Image Results");
-			Table.set("IntDen of SPARK speckles", current_last_row, IntDen_of_speckles, "Image Results");
-			percent = area_of_speckles/(quant_area/100);
-			Table.set("Area of SPARK speckles percent of quantifiable area", current_last_row, percent, "Image Results");
+			puncta_per_area = number_of_speckles*10/quant_area;
+			Table.set("Area of SPARK speckles percent of quantifiable area", current_last_row, puncta_per_area, "Image Results");
 			run("Clear Results");
-			if (isOpen("Summary")){
-			selectWindow("Summary");
-			run("Close");
-		}
 
 			selectWindow("SPARK_speckles");
-			run("Invert");
+			run("Find Maxima...", "prominence=16000 strict output=[Point Selection]");
+			run("Flatten");
 			run("RGB Color");
 			selectWindow("Original_image");
 			run("RGB Color");
 			//Save thersholding results
-			run("Combine...", "stack1=Original_image stack2=SPARK_speckles");
+			run("Combine...", "stack1=Original_image stack2=SPARK_speckles-1");
 			saveAs("Tiff", output_dir + "Segmentation results for " + short_name + " .tif");
 			close();
+			if (isOpen("Original_image")){
+			selectWindow("Original_image");
+			run("Close");
+		}
+			if (isOpen("SPARK_speckles")){
+			selectWindow("SPARK_speckles");
+			run("Close");
+		}
+			if (isOpen("SPARK_speckles-1")){
+			selectWindow("SPARK_speckles-1");
+			run("Close");
+		}
 }			
 
 //Save the quantification results into a .csv table file
